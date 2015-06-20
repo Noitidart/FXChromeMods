@@ -1,0 +1,23 @@
+.fadein_FxChromeModsPanel {
+    -moz-animation-duration: 400ms;
+    -moz-animation-name: fadein_kf_FxChromeModsPanel;
+    -moz-animation-fill-mode: forwards;
+    -moz-animation-timing-function: linear;
+}
+
+.fadeout_FxChromeModsPanel {
+    -moz-animation-duration: 400ms;
+    -moz-animation-name: fadeout_kf_FxChromeModsPanel;
+    -moz-animation-fill-mode: forwards;
+    -moz-animation-timing-function: linear;
+}
+
+@-moz-keyframes fadein_kf_FxChromeModsPanel {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@-moz-keyframes fadeout_kf_FxChromeModsPanel {
+    from {opacity: 1;}
+    to {opacity: 0;}
+}

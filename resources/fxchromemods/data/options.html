@@ -1,0 +1,372 @@
+<html>
+<head>
+    <title>FXChromeMods</title>
+    <link rel="stylesheet" type="text/css" href="style/chrome.css" />
+    <style>
+.panelDown_kf {
+    -moz-animation-duration: 700ms;
+    -moz-animation-name: panelDown_kf;
+    -moz-animation-fill-mode: forwards; 
+}
+
+.panelUp_kf {
+    -moz-animation-duration: 700ms;
+    -moz-animation-name: panelUp_kf;
+    -moz-animation-fill-mode: forwards;
+}
+
+@-moz-keyframes panelDown_kf {
+    from {opacity: 0; display:block;}
+    to {opacity: 1;}
+}
+
+@-moz-keyframes panelUp_kf {
+    from {opacity: 1;}
+    to {opacity: 0; display:none;}
+}
+    </style>
+   <script type="text/javascript">
+        var selectDivFullHeights = {};
+        var selectProps = {'customAppButton':1, 'customFxChromeStyle':1};
+        
+        function show(el, state) {
+            el.style.display = !state ? '' : state;
+        }
+        function hide(el) {
+            el.style.display = 'none';
+        }
+        function $(el) {
+            return document.getElementById(el);
+        }
+        function toggleSelect(noAnim, prop) {
+            //prop is string of the pref like ie: customAppButton or customFxChromeStyle
+            //detereminds if customAppButton checkbox is selected, if so shows and hides the select box
+            var checkbox = $(prop);
+            var selectDiv = $(prop + 'SelectDiv');
+            var select = $(prop + 'Select');
+            /*
+            if (!selectDivFullHeights[prop]) {
+                selectDivFullHeights[prop] = window.getComputedStyle(selectDiv, null).getPropertyHeight();
+                selectDiv.style.height = 0;
+            }
+            */
+            if (checkbox.checked) {
+                //show(selectDiv);
+                if (!noAnim) {
+                    show(selectDiv);
+                } else {
+                    //selectDiv.style.height = selectDivFullHeights[prop]+'px';
+                    show(selectDiv);
+                }
+            } else {
+                //alert('do css3anim and afterFinish hide el');
+                hide(selectDiv);
+            }
+        }
+        
+        function messageEsc(e) {
+            if (e.keyCode == 27) {
+                //close the options panel
+                $('Options_Cancel').click();
+                e.returnValue = false;
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        function init(){
+            for (var p in selectProps) {
+                $(p).addEventListener('change', callback(p), false);
+            }
+            window.addEventListener('keypress', messageEsc, false);
+        }
+        window.addEventListener('DOMContentLoaded', init, false)
+        
+        function callback(id) {
+            return function() {
+                toggleSelect(null, id)
+            }
+        }
+   </script>
+<style>
+#OptionsContainer {
+    box-shadow: 0px 5px 80px #505050;
+    background: #FFFFFF;
+    border:1px solid #BCC1D0; 
+    border-radius: 2px;
+    width: 500px;
+    margin: -10% auto 0 auto;
+    padding: 0;
+    position: relative;
+    font-family: Arial, sans-serif;
+    color: #000000;
+    font-size: 13px;
+    -moz-user-select: -moz-none;
+    cursor: default;
+}
+
+#OptionsContainer h1 {
+    padding: 10px 50px 10px 15px;
+    background: -moz-linear-gradient(white, #F8F8F8);
+    border-bottom: 1px solid rgba(188, 193, 208, .5);
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #53637D;
+    margin: 0;
+    text-shadow: #FFFFFF 0 1px 2px;
+}
+
+#MessageContainer h1 {
+    font-size: 100%;
+    padding: 6px 5px;
+    background: -moz-linear-gradient(white, #F8F8F8);
+    border-bottom: 1px solid rgba(188, 193, 208, .5);
+    font-weight: bold;
+    color: #53637D;
+    margin: 0;
+    text-shadow: #FFFFFF 0 1px 2px;
+}
+
+#OptionsContainer h1 img {
+    position: absolute;
+    margin-left:-3px;
+    top:3px;
+}
+
+#OptionsContainer h1 .title {
+    padding-left: 37px;
+}
+
+#OptionsContainer h1 .version {
+    font-size: .6em;
+    color:#CCCCCC;
+    vertical-align: super;
+    position: absolute;
+    right: 15px;
+    text-shadow: none;
+}
+
+#MessageContainer {
+    position: absolute;
+    width: 80%;
+    z-index: 2;
+    left: 10%;
+    top: 25%;
+    box-shadow: 0pt 2px 10px -4px #505050;
+    
+    
+    background: #FFFFFF;
+    border:1px solid #BCC1D0; 
+    border-radius: 2px;
+    margin: 0 auto;
+    padding: 0;
+    color: #000000;
+}
+
+#MessageContent {
+    padding:10px 15px;
+}
+
+.disableTab input[type="checkbox"] {
+    -moz-user-focus: ignore;
+}
+
+.disableTab select {
+    -moz-user-focus: ignore;
+}
+
+.disableTab button {
+    -moz-user-focus: ignore;
+}
+
+#OptionsContent {
+    padding: 10px 15px 5px 23px;
+    position: relative;
+    overflow:hidden;
+}
+
+#OptionsContent .checkbox{
+    margin: 5px 0;
+}
+
+#OptionsContent .Checkbox input[type="checkbox"], input[type="radio"] {
+    margin-top: 1px;
+    margin-left: 0;
+    margin-right: 0;
+    position: relative;
+    top: 1px;
+}
+
+#OptionButtons {
+    /*-moz-box-align: center;*/
+    /*-moz-box-orient: horizontal;*/
+    /*-moz-box-pack: end;*/
+    text-align: right;
+    border-top: 1px solid rgba(188, 193, 208, .5);
+    /*display: -moz-box;*/
+    padding: 12px;
+}
+
+#OptionButtonRight {
+    /*display: -moz-box;*/
+}
+
+#ButtonStrip {
+    /*display: -moz-box;*/
+    /*-moz-box-orient: horizontal;*/
+}
+
+/*start align target div vertically in non-old-ie*/
+.outterForVertMiddle {
+    display:table;
+    position:static;
+    height:100%; /*height and width dont have to be 100% the target div gets vert middled in the size of outter */
+    width:100%;
+}
+.middleForVertMiddle {
+    display:table-cell;
+    vertical-align:middle;
+}
+/* to complete the middle trick, set the div we want to vertically center to position:relative;top:-50%
+/*end align target div vertically in non-old-ie*/
+</style>
+</head>
+<body>
+<div class="outterForVertMiddle"> <!--start of outter div-->
+<div class="middleForVertMiddle"> <!--start of middle div-->
+<div id="OptionsContainer" style="top:-50%">
+    <h1>
+        <img src="icon32.png">
+        <span class="title">FXChromeMods</span>
+        <span class="version">v1.1.0</span>
+    </h1>
+    <div id="OptionsContent">
+            <!--message container
+            <div id="MessageContainer" style="display:none;opacity:0;">
+                <h1>Type in link to image and press enter</h1>
+                <div id="MessageContent"><input type="text" id="MessageInput" style="width:100%;"></div>
+            </div>
+            end message container-->
+            <!--dummy layer to prevent clicks when message shown
+            <div id="OptionsMessageInterLayer" style="margin:-10px -15px -5px -23px; display: none; position: absolute; width: 100%; height: 100%; z-index: 1;"></div>
+            end dummy layer-->
+            <div class="checkbox">
+				<label>
+    				<input type="checkbox" id="blueBackground">
+    				<span>Blue Background Color</span>
+				</label>
+			</div>
+            <div class="checkbox">
+    			<label>
+    				<input type="checkbox" id="bookmarkSpaceSaver">
+    				<span>Bookmark Space Saver</span>
+				</label>
+			</div>
+            <div class="checkbox">
+            	<label>
+    				<input type="checkbox" id="compactUbuntuIconSet">
+    				<span>Compactmenu Ubuntu Icon Set</span>
+				</label>
+			</div>
+            <div class="checkbox">
+        		<label>
+    				<input type="checkbox" id="conditionalBack">
+    				<span>Conditional Forward Button (Firefox 10+)</span>
+				</label>
+			</div>
+            <!---->
+    		<div class="checkbox">
+				<label>
+    				<input type="checkbox" id="customAppButton">
+    				<span>Custom App Button</span>
+				</label>
+				<div class="checkbox" style="margin-left: 30px; overflow:hidden; display:none;" id="customAppButtonSelectDiv"> 
+                    <select id="customAppButtonSelect">
+                        <option value="customAppButton_FFNormal">Firefox Normal</option>
+                        <option value="customAppButton_None">Firefox None</option>
+                        <option value="chrome://browser/skin/tabbrowser/aurora.png">Firefox Aurora Globe</option>
+                        <option value="chrome://browser/skin/tabbrowser/nightly.png">Firefox Nightly Globe</option>
+                        <option value="alien">Alien</option>
+                        <option value="awesome">Awesome Smilie</option>
+                        <option value="burger">Burger</option>
+                        <option value="businessman">Businessman</option>
+                        <option value="cat">Cat</option>
+                        <option value="cupcake">Cupcake</option>
+                        <option value="detective">Detective</option>
+                        <option value="dog">Dog</option>
+                        <option value="flower">Flower</option>
+                        <option value="generic">Generic</option>
+                        <option value="generic aqua">Generic Aqua</option>
+                        <option value="generic blue">Generic Blue</option>
+                        <option value="generic green">Generic Green</option>
+                        <option value="generic orange">Generic Orange</option>
+                        <option value="generic purple">Generic Purple</option>
+                        <option value="generic red">Generic Red</option>
+                        <option value="generic yellow">Generic Yellow</option>
+                        <option value="horse">Horse</option>
+                        <option value="margarita">Margarita</option>
+                        <option value="chrome://browser/skin/tabbrowser/profile_avatar_ninja.png">Ninja</option>
+                        <option value="ninja2">Ninja 2.0</option>
+                        <option value="note">Note</option>
+                        <option value="pizza">Pizza</option>
+                        <option value="secret agent">Secret Agent</option>
+                        <option value="soccer">Soccer</option>
+                        <option value="sun cloud">Sun Cloud</option>
+                        <option value="superhero">Superhero</option>
+                        <option value="volley ball">Volley Ball Girl</option>
+                        <!--<option value="file">File...</option>-->
+                    </select>
+                    <span id="customAppButtonOptions" style="display:none;opacity:0;">
+                        <button id="customAppButtonBrowse" style="border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 1px 6px; font-size: 0.8em;">Browse</button><button id="customAppButtonDownload" style="border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 1px 6px; font-size: 0.8em;">Download</button><img id="customAppButtonDownloading" style="vertical-align: middle; margin: 0 0 1px 6px; display:none" src="style/loading.png">
+                    </span>
+				</div>
+			</div>
+            <!---->
+            <!---->
+        	<div class="checkbox">
+				<label>
+    				<input type="checkbox" id="customFxChromeStyle">
+    				<span>Custom FXChrome Style</span>
+				</label>
+				<div class="checkbox" style="margin-left: 30px; overflow:hidden; display:none;" id="customFxChromeStyleSelectDiv">
+                    <select id="customFxChromeStyleSelect">
+                        <option value="customFxChromeStyle_Australis">Australis FXChrome</option>
+                        <option value="customFxChromeStyle_Mac">Mac FXChrome</option>
+                        <option value="customFxChromeStyle_Ux">UX FXChrome</option>
+                    </select>
+				</div>
+			</div>
+            <!---->
+    		<div class="checkbox">
+				<label>
+    				<input type="checkbox" id="newTabPlus">
+    				<span>New Tab Button with Plus Icon</span>
+				</label>
+			</div>
+            <div class="checkbox">
+    			<label>
+    				<input type="checkbox" id="utilitiesButton">
+    				<span>Utilities Button in Toolbar</span>
+				</label>
+			</div>
+            <div class="checkbox">
+				<label>
+    				<input type="checkbox" id="winXpIcons">
+    				<span>WinXP Style Min/Max/Close Icons</span>
+				</label>
+			</div>
+	</div>
+	<div id="OptionButtons">
+		<div id="OptionButtonRight">
+			<div id="ButtonStrip">
+				<button id="Options_Save">Save</button>
+				<button id="Options_Cancel">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+</div> <!--end of middle div-->
+</div> <!--end of outter div-->
+</body>
+</html>

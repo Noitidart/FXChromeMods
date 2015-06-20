@@ -1,0 +1,98 @@
+@media not all and (-moz-windows-compositor) {
+  #navigator-toolbox {
+    border-style: none!important;
+  }
+
+  #titlebar-content {
+    -moz-appearance: none!important;
+    margin-top: 2px!important;
+  }
+
+  window[sizemode="maximized"] #titlebar-content {
+    margin-top: 1px!important;
+    padding: 0 3px 0 0!important;
+  }
+
+  #main-window[sizemode="normal"] #navigator-toolbox,
+  #main-window[sizemode="maximized"][tabsontop=false] #navigator-toolbox {
+     margin-top: -11px !important;
+  }
+
+  #titlebar-buttonbox {
+    -moz-appearance: none !important;
+    margin-top: -3px!important;
+    padding-bottom: 11px!important;
+  }
+
+  #titlebar-min:-moz-locale-dir(rtl),
+  #titlebar-max:-moz-locale-dir(rtl),
+  #restore-button:-moz-locale-dir(rtl),
+  #titlebar-close:-moz-locale-dir(rtl) {
+    -moz-transform: scaleX(-1)!important;
+  }
+
+  window[sizemode="maximized"] > #titlebar > #titlebar-content > #appmenu-button-container {
+    margin-top: -1px!important;
+  }
+
+  window[sizemode="maximized"] #titlebar-buttonbox {
+    -moz-appearance: none !important;
+    -moz-margin-end: 0!important;
+    padding-bottom: 9px!important;
+  }
+
+  #titlebar-min,
+  #titlebar-max,
+  #restore-button,
+  #titlebar-close {
+    -moz-appearance: none !important;
+    list-style-image: url("chrome://global/skin/icons/windowControls.png")!important;
+    padding: 0!important;
+    border-style: none !important;
+    background: transparent !important;
+    margin: 0px!important;
+    box-shadow:  none !important;
+    -moz-border-image: none !important;
+  }
+
+  #titlebar-min {
+    -moz-image-region: rect(0, 26px, 18px, 0)!important;
+  }
+  #titlebar-min:hover {
+    -moz-image-region: rect(18px, 26px, 36px, 0)!important;
+  }
+  #titlebar-min:hover:active {
+    -moz-image-region: rect(36px, 26px, 54px, 0)!important;
+  }
+
+  #titlebar-max {
+    -moz-image-region: rect(0, 76px, 18px, 51px)!important;
+  }
+  #titlebar-max:hover {
+    -moz-image-region: rect(18px, 76px, 36px, 51px)!important;
+  }
+  #titlebar-max:hover:active {
+    -moz-image-region: rect(36px, 76px, 54px, 51px)!important;
+  }
+
+  window[sizemode="maximized"] #titlebar-max {
+    -moz-image-region: rect(0, 51px, 18px, 26px)!important;
+  }
+  window[sizemode="maximized"] #titlebar-max:hover {
+    -moz-image-region: rect(18px, 51px, 36px, 26px)!important;
+  }
+  window[sizemode="maximized"] #titlebar-max:hover:active {
+    -moz-image-region: rect(36px, 51px, 54px, 26px)!important;
+  }
+
+  #titlebar-close {
+    -moz-margin-start: -1px!important;
+    -moz-image-region: rect(0, 119px, 18px, 76px)!important;
+  }
+  #titlebar-close:hover {
+    -moz-image-region: rect(18px, 119px, 36px, 76px)!important;
+  }
+  #titlebar-close:hover:active {
+    -moz-image-region: rect(36px, 119px, 54px, 76px)!important;
+  }
+}

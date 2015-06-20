@@ -1,0 +1,23 @@
+#main-window #appmenu-button,
+#appmenu-toolbar-button {
+  background: url("chrome://browser/skin/tabbrowser/profile_avatar_ninja.png")  !important;
+  background-repeat: no-repeat !important;
+  background-position: center bottom !important;
+}
+
+#main-window[tabsintitlebar] #appmenu-button {
+  background-position: center center !important;
+}
+
+#main-window[privatebrowsingmode=temporary] #appmenu-button,
+#main-window[tabsintitlebar][privatebrowsingmode=temporary] #appmenu-button,
+#main-window[privatebrowsingmode=temporary] #appmenu-toolbar-button {
+  background: url("chrome://browser/skin/Privacy-48.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center bottom !important;
+}
+
+#main-window[tabsintitlebar][privatebrowsingmode=temporary] #appmenu-button {
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
