@@ -28,6 +28,7 @@ var gOverlay = aContentWindow.document.getElementById('FXChromeMods_CP');
 var gJson;
 var gSb = Services.strings.createBundle(core.addon.path.locale + 'mods.properties?' + Math.random()); /* Randomize URI to work around bug 719376 */
 
+const pr = {PR_RDONLY: 0x01, PR_WRONLY: 0x02, PR_RDWR: 0x04, PR_CREATE_FILE: 0x08, PR_APPEND: 0x10, PR_TRUNCATE: 0x20, PR_SYNC: 0x40, PR_EXCL: 0x80};
 const localesBlankJSON = { // update this obj with keys of locales i want supported
 	'en-US': ''
 };
@@ -214,19 +215,31 @@ window.addEventListener('keyup', function(e) {
 						//oFile.renameTo(oFile.parent, core.addon.id + '.zip');
 						//var oFile = new FileUtils.File(OS.Path.join(OS.Constants.Path.profileDir, 'extensions', core.addon.id + '.zip'));
 						//console.log('oFile:', oFile, oFile.exists());
-						zipWriter.open(oFile, 0x02);
+						zipWriter.open(oFile, pr.PR_RDWR | pr.PR_APPEND);
 
 						var is = Cc["@mozilla.org/io/string-input-stream;1"].createInstance(Ci.nsIStringInputStream);
+						console.info('fileConts_modsJson:', fileConts_modsJson);
 						is.data = fileConts_modsJson;
-						zipWriter.addEntryStream('/resources/mods.json', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+						//zipWriter.addEntryStream('resources/mods.json', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+						zipWriter.addEntryStream('mods.json', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+						console.log('ok added mods.json');
 						
-						for (var locale in json['mods.props']) {
+						var jsonProps = JSON.parse(json['mods.props']);
+						console.info('jsonProps:', jsonProps);
+						for (var locale in jsonProps) {
+							console.info('iterating locale:', locale);
 							if (locale in localesBlankJSON) {
-								var is = Cc["@mozilla.org/io/string-input-stream;1"].createInstance(Ci.nsIStringInputStream);
-								is.data = json['mods.props'][locale];
-								zipWriter.addEntryStream('/locale/' + locale + '/mods.properties', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+								if (locale in jsonProps) {
+									var is = Cc["@mozilla.org/io/string-input-stream;1"].createInstance(Ci.nsIStringInputStream);
+									is.data = jsonProps[locale];
+									//zipWriter.addEntryStream('locale/' + locale + '/mods.properties', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+									zipWriter.addEntryStream('mods.properties', Date.now(), Ci.nsIZipWriter.COMPRESSION_NONE, is, false);
+									console.log('ok added mod.properties');
+								}
 							}
 						}
+						
+						zipWriter.close();
 						
 						gSb = Services.strings.createBundle(core.addon.path.locale + 'mods.properties?' + Math.random()); /* Randomize URI to work around bug 719376 */
 						readGJsonToDom();
