@@ -8,10 +8,6 @@
 		<em:version>2.0a1pre</em:version>
 		<em:type>2</em:type>
 		<em:bootstrap>true</em:bootstrap>
-		<!--
-			<em:optionsType>2</em:optionsType>
-			<em:optionsURL>javascript:Components.utils.import('resource://gre/modules/Services.jsm'); var sendMsgJson = {name:'cp-open'}; var aDOMWindow = window.opener; console.info('windoer.opener:', aDOMWindow); var util = aDOMWindow.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils); sendMsgJson.outerID = util.outerWindowID; if (aDOMWindow.gBrowser && aDOMWindow.gBrowser.tabContainer) { sendMsgJson.tabPos = aDOMWindow.gBrowser._tPos; } (Services.obs.notifyObservers(null, 'jid0-zDuE7MQZjTEpOLHPvhw3GbDyhIg@jetpack', JSON.stringify(sendMsgJson)); window.close();</em:optionsURL>
-		-->
 		<!-- Firefox -->
 		<em:targetApplication>
 			<Description>

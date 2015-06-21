@@ -24,6 +24,9 @@ const core = {
 	}
 };
 
+const NS_XUL = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+const NS_HTML = 'http://www.w3.org/1999/xhtml';
+
 // Lazy Imports
 const myServices = {};
 XPCOMUtils.defineLazyGetter(myServices, 'sb', function () { return Services.strings.createBundle(core.addon.path.locale + 'bootstrap.properties?' + Math.random()); /* Randomize URI to work around bug 719376 */ });
@@ -91,7 +94,7 @@ function extendCore() {
 var observers = {
 	'inline-options-shown': {
 		observe: function (aSubject, aTopic, aData) {
-			if (aData == self.aData.id) {
+			if (aData == core.addon.id) {
 				obsHandler_inlineOptionsShown(aSubject, aTopic, aData);
 			}
 		},
@@ -104,7 +107,7 @@ var observers = {
 	},
 	'inline-options-hid': {
 		observe: function (aSubject, aTopic, aData) {
-			if (aData == self.aData.id) {
+			if (aData == core.addon.id) {
 				obsHandler_inlineOptionsHid(aSubject, aTopic, aData);
 			}
 		},
@@ -132,8 +135,6 @@ AboutFXChromeMods.prototype = Object.freeze({
 	},
 
 	newChannel: function(aURI) {
-		//let channel = Services.io.newChannel('addons://detail/' + escape(core.addon.id) + '/preferences', null, null);
-		//let channel = Services.io.newChannel(core.addon.path.content + 'about_fxchrome.htm', null, null);
 		let channel = Services.io.newChannel(core.addon.path.content + 'about_fxchrome.htm', null, null);
 		channel.originalURI = aURI;
 		return channel;
@@ -162,7 +163,46 @@ var factory;
 
 // start - observer handler - inline-options-shown
 function obsHandler_inlineOptionsShown(aSubject, aTopic, aData) {
+	
+	console.error('in obsHandler_inlineOptionsShown');
+	
 	var contentDocument = aSubject;
+	
+	var overlay = contentDocument.createElementNS(NS_XUL, 'box');
+	overlay.setAttribute('style', 'z-index:1; position:fixed; opacity:0; width:100%; height:100%; background:-moz-radial-gradient(rgba(127, 127, 127, 0.5), rgba(127, 127, 127, 0.5) 35%, rgba(0, 0, 0, 0.7)); transition:opacity 200ms; top:0; left:0;');
+
+	overlay.setAttribute('id', 'FXChromeMods_CP');
+	
+	console.info('overlay:', overlay);
+	
+	var header = contentDocument.getElementById('header');
+	console.info('header:', header);
+	header.parentNode.insertBefore(overlay, header);
+	
+	
+	
+	var iframe = contentDocument.createElementNS(NS_HTML, 'iframe');
+	iframe.setAttribute('flex', '1');
+	iframe.setAttribute('style', 'overflow:hidden;width:100%;height:100%;');
+	overlay.appendChild(iframe);
+	
+	iframe.setAttribute('type', 'chrome')
+	iframe.setAttribute('src', core.addon.path.content + 'cp.xhtml');
+	iframe.addEventListener('load', function() {
+		overlay.style.opacity = 1;
+	}, false);
+	
+	contentDocument.defaultView.addEventListener('keyup', function(e) {
+		console.error('bootstrap esc');
+		if (e.keyCode == 27) { // ESC
+			console.log('overlay:', overlay);
+			overlay.style.opacity = 0;
+			contentDocument.defaultView.removeEventListener('keyup', arguments.callee, false);
+			overlay.addEventListener('transitionend', function() {
+				overlay.parentNode.removeChild(overlay);
+			}, false);
+		}
+	}, false);
 }
 // end - observer handler - inline-options-shown
 
@@ -181,11 +221,24 @@ function startup(aData, aReason) {
 	//core.addon.aData = aData;
 	extendCore();
 	factory = new Factory(AboutFXChromeMods);
+	
+
+	//start observers stuff more
+	for (var o in observers) {
+		observers[o].reg();
+	}
+	//end observers stuff more
 }
 
 function shutdown(aData, aReason) {
 	if (aReason == APP_SHUTDOWN) { return }
 	factory.unregister();
+	
+	//start observers stuff more
+	for (var o in observers) {
+		observers[o].unreg();
+	}
+	//end observers stuff more
 }
 
 // start - common helper functions
