@@ -1,4 +1,9 @@
-<!DOCTYPE html SYSTEM "chrome://fxchromemods/locale/cp.dtd">
+<!DOCTYPE html [
+	<!ENTITY % cpDTD SYSTEM "chrome://fxchromemods/locale/cp.dtd">
+	%cpDTD;
+	<!ENTITY % modsDTD SYSTEM "chrome://fxchromemods/locale/mods.dtd">
+	%modsDTD;
+]>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<title>&cp.title;</title>
@@ -134,6 +139,7 @@
 			</div>
 			<div id="OptionButtons">
 				<div id="OptionButtonRight">
+					<button id="Options_Update" onclick="checkForUpdates()">Check for Updates</button> <img src="chrome://fxchromemods/content/resources/styles/loading.png" id="update_loading"/>
 					<div id="ButtonStrip">
 						<button id="Options_Save">Save</button>
 						<button id="Options_Cancel">Cancel</button>

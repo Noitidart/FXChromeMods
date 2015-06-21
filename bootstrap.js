@@ -188,19 +188,23 @@ function obsHandler_inlineOptionsShown(aSubject, aTopic, aData) {
 	
 	iframe.setAttribute('type', 'chrome')
 	iframe.setAttribute('src', core.addon.path.content + 'cp.xhtml');
-	iframe.addEventListener('load', function() {
-		overlay.style.opacity = 1;
-	}, false);
 	
 	contentDocument.defaultView.addEventListener('keyup', function(e) {
 		console.error('bootstrap esc');
 		if (e.keyCode == 27) { // ESC
 			console.log('overlay:', overlay);
-			overlay.style.opacity = 0;
-			contentDocument.defaultView.removeEventListener('keyup', arguments.callee, false);
-			overlay.addEventListener('transitionend', function() {
-				overlay.parentNode.removeChild(overlay);
-			}, false);
+			if (overlay.style.opacity != 0) {
+				overlay.style.opacity = 0;
+				contentDocument.defaultView.removeEventListener('keyup', arguments.callee, false);
+				overlay.addEventListener('transitionend', function() {
+					overlay.parentNode.removeChild(overlay);
+				}, false);
+			} else {
+				// its not faded in, so just remove it, this happens in case xhr fails to read the json
+				contentDocument.defaultView.setTimeout(function() {
+					overlay.parentNode.removeChild(overlay);
+				}, 1000); // need the timeout as apparnetly adding is async and the readfile happens faster then the adding amazing
+			}
 		}
 	}, false);
 }
