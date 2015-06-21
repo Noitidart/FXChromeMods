@@ -1,8 +1,0 @@
-button:hover:active,
-button[open="true"],
-button[checked="true"] {
-  -moz-border-top-colors: none !important;
-  -moz-border-right-colors: none !important;
-  -moz-border-bottom-colors: none !important;
-  -moz-border-left-colors: none !important;
-}

@@ -1,216 +1,192 @@
-/* vim:set ts=2 sw=2 sts=2 expandtab */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+// Imports
+const {classes: Cc, interfaces: Ci, manager: Cm, results: Cr, utils: Cu, Constructor: CC} = Components;
+Cm.QueryInterface(Ci.nsIComponentRegistrar);
 
-// @see http://mxr.mozilla.org/mozilla-central/source/js/src/xpconnect/loader/mozJSComponentLoader.cpp
+Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+const {TextDecoder, TextEncoder, OS} = Cu.import('resource://gre/modules/osfile.jsm', {});
 
-"use strict";
-
-const { classes: Cc, Constructor: CC, interfaces: Ci, utils: Cu,
-        results: Cr, manager: Cm } = Components;
-const ioService = Cc['@mozilla.org/network/io-service;1'].
-                  getService(Ci.nsIIOService);
-const resourceHandler = ioService.getProtocolHandler('resource')
-                        .QueryInterface(Ci.nsIResProtocolHandler);
-const XMLHttpRequest = CC('@mozilla.org/xmlextras/xmlhttprequest;1',
-                          'nsIXMLHttpRequest');
-const prefs = Cc["@mozilla.org/preferences-service;1"].
-              getService(Ci.nsIPrefService).
-              QueryInterface(Ci.nsIPrefBranch2);
-const mozIJSSubScriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"].
-                            getService(Ci.mozIJSSubScriptLoader);
-
-const REASON = [ 'unknown', 'startup', 'shutdown', 'enable', 'disable',
-                 'install', 'uninstall', 'upgrade', 'downgrade' ];
-
-let loader = null;
-let loaderUri = null;
-
-const URI = __SCRIPT_URI_SPEC__.replace(/bootstrap\.js$/, "");
-
-// Initializes default preferences
-function setDefaultPrefs() {
-  let branch = prefs.getDefaultBranch("");
-  let prefLoaderScope = {
-    pref: function(key, val) {
-      switch (typeof val) {
-        case "boolean":
-          branch.setBoolPref(key, val);
-          break;
-        case "number":
-          if (val % 1 == 0) // number must be a integer, otherwise ignore it
-            branch.setIntPref(key, val);
-          break;
-        case "string":
-          branch.setCharPref(key, val);
-          break;
-      }
-    }
-  };
-
-  let uri = ioService.newURI(
-      "defaults/preferences/prefs.js",
-      null,
-      ioService.newURI(URI, null, null));
-
-  // if there is a prefs.js file, then import the default prefs
-  try {
-    // setup default prefs
-    mozIJSSubScriptLoader.loadSubScript(uri.spec, prefLoaderScope);
-  }
-  // errors here should not kill addon
-  catch (e) {
-    Cu.reportError(e);
-  }
-}
-
-// Gets the topic that fit best as application startup event, in according with
-// the current application (e.g. Firefox, Fennec, Thunderbird...)
-function getAppStartupTopic() {
-  // The following mapping of application names to GUIDs was taken
-  // from `xul-app` module. They should keep in sync, so if you change one,
-  // change the other too!
-  let ids = {
-    Firefox: '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
-    Mozilla: '{86c18b42-e466-45a9-ae7a-9b95ba6f5640}',
-    Sunbird: '{718e30fb-e89b-41dd-9da7-e25a45638b28}',
-    SeaMonkey: '{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}',
-    Fennec: '{aa3c5121-dab2-40e2-81ca-7ea25febc110}',
-    Thunderbird: '{3550f703-e582-4d05-9a08-453d09bdfdc6}'
-  };
-
-  let id = Cc['@mozilla.org/xre/app-info;1'].getService(Ci.nsIXULAppInfo).ID;
-
-  switch (id) {
-    case ids.Firefox:
-    case ids.SeaMonkey:
-      return 'sessionstore-windows-restored';
-    case ids.Thunderbird:
-      return 'mail-startup-done';
-    // Temporary, until Fennec Birch will support sessionstore event
-    case ids.Fennec:
-    default:
-      return 'final-ui-startup';
-  }
-}
-
-// Utility function that synchronously reads local resource from the given
-// `uri` and returns content string.
-function readURI(uri) {
-  let ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  let channel = ioservice.newChannel(uri, "UTF-8", null);
-  let stream = channel.open();
-
-  let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);  
-  cstream.init(stream, "UTF-8", 0, 0);
-
-  let str = {};
-  let data = "";
-  let read = 0;
-  do {
-    read = cstream.readString(0xffffffff, str);
-    data += str.value;
-  } while (read != 0);
-
-  cstream.close();
-
-  return data;
-}
-
-// Function takes `topic` to be observer via `nsIObserverService` and returns
-// promise that will be delivered once notification is published.
-function on(topic) {
-  return function promise(deliver) {
-    const observerService = Cc['@mozilla.org/observer-service;1'].
-                            getService(Ci.nsIObserverService);
-
-    observerService.addObserver({
-      observe: function observer(subject, topic, data) {
-        observerService.removeObserver(this, topic);
-        deliver(subject, topic, data);
-      }
-    }, topic, false);
-  }
-}
-
-// We don't do anything on install & uninstall yet, but in a future
-// we should allow add-ons to cleanup after uninstall.
-function install(data, reason) {}
-function uninstall(data, reason) {}
-
-function startup(data, reason) {
-  // TODO: When bug 564675 is implemented this will no longer be needed
-  // Always set the default prefs, because they disappear on restart
-  setDefaultPrefs();
-
-  // TODO: Maybe we should perform read harness-options.json asynchronously,
-  // since we can't do anything until 'sessionstore-windows-restored' anyway.
-  let options = JSON.parse(readURI(URI + './harness-options.json'));
-  options.loadReason = REASON[reason];
-
-  // URI for the root of the XPI file.
-  // 'jar:' URI if the addon is packed, 'file:' URI otherwise.
-  // (Used by l10n module in order to fetch `locale` folder)
-  options.rootURI = data.resourceURI.spec;
-
-  // Register a new resource "domain" for this addon which is mapping to
-  // XPI's `resources` folder.
-  // Generate the domain name by using jetpack ID, which is the extension ID
-  // by stripping common characters that doesn't work as a domain name:
-  let uuidRe =
-    /^\{([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\}$/;
-  let domain = options.jetpackID.toLowerCase()
-                            .replace(/@/g, "-at-")
-                            .replace(/\./g, "-dot-")
-                            .replace(uuidRe, "$1");
-
-  let resourcesUri = ioService.newURI(URI + '/resources/', null, null);
-  resourceHandler.setSubstitution(domain, resourcesUri);
-  options.uriPrefix = "resource://" + domain + "/";
-
-  // Import loader module using `Cu.imports` and bootstrap module loader.
-  loaderUri = options.uriPrefix + options.loader;
-  loader = Cu.import(loaderUri).Loader.new(options);
-
-  // Creating a promise, that will be delivered once application is ready.
-  // If application is at startup then promise is delivered on
-  // the application startup topic, otherwise it's delivered immediately.
-  let promise = reason === APP_STARTUP ? on(getAppStartupTopic()) :
-                                         function promise(deliver) deliver()
-
-  // Once application is ready we spawn a new process with main module of
-  // on add-on.
-  promise(function() {
-    try {
-      loader.spawn(options.main, options.mainPath);
-    } catch (error) {
-      // If at this stage we have an error only thing we can do is report about
-      // it via error console. Keep in mind that error won't automatically show
-      // up there when called via observerService.
-      Cu.reportError(error);
-      throw error;
-    }
-  });
-
+// Globals
+const core = {
+	addon: {
+		name: 'FXChromeMods',
+		id: 'jid0-zDuE7MQZjTEpOLHPvhw3GbDyhIg@jetpack',
+		path: {
+			name: 'fxchromemods',
+			content: 'chrome://fxchromemods/content/',
+			locale: 'chrome://fxchromemods/locale/',
+			resources: 'chrome://fxchromemods/content/resources/',
+			images: 'chrome://fxchromemods/content/resources/images/'
+		}
+	},
+	os: {
+		name: OS.Constants.Sys.Name.toLowerCase()
+	}
 };
 
-function shutdown(data, reason) {
-  // If loader is already present unload it, since add-on is disabled.
-  if (loader) {
-    reason = REASON[reason];
-    let system = loader.require('api-utils/system');
-    loader.unload(reason);
+// Lazy Imports
+const myServices = {};
+XPCOMUtils.defineLazyGetter(myServices, 'sb', function () { return Services.strings.createBundle(core.addon.path.locale + 'bootstrap.properties?' + Math.random()); /* Randomize URI to work around bug 719376 */ });
 
-    // Bug 724433: We need to unload JSM otherwise it will stay alive
-    // and keep a reference to this compartment.
-    Cu.unload(loaderUri);
-    loader = null;
+function extendCore() {
+	// adds some properties i use to core
+	switch (core.os.name) {
+		case 'winnt':
+		case 'winmo':
+		case 'wince':
+			core.os.version = parseFloat(Services.sysinfo.getProperty('version'));
+			// http://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions
+			if (core.os.version == 6.0) {
+				core.os.version_name = 'vista';
+			}
+			if (core.os.version >= 6.1) {
+				core.os.version_name = '7+';
+			}
+			if (core.os.version == 5.1 || core.os.version == 5.2) { // 5.2 is 64bit xp
+				core.os.version_name = 'xp';
+			}
+			break;
+			
+		case 'darwin':
+			var userAgent = myServices.hph.userAgent;
+			//console.info('userAgent:', userAgent);
+			var version_osx = userAgent.match(/Mac OS X 10\.([\d\.]+)/);
+			//console.info('version_osx matched:', version_osx);
+			
+			if (!version_osx) {
+				throw new Error('Could not identify Mac OS X version.');
+			} else {
+				var version_osx_str = version_osx[1];
+				var ints_split = version_osx[1].split('.');
+				if (ints_split.length == 1) {
+					core.os.version = parseInt(ints_split[0]);
+				} else if (ints_split.length >= 2) {
+					core.os.version = ints_split[0] + '.' + ints_split[1];
+					if (ints_split.length > 2) {
+						core.os.version += ints_split.slice(2).join('');
+					}
+					core.os.version = parseFloat(core.os.version);
+				}
+				// this makes it so that 10.10.0 becomes 10.100
+				// 10.10.1 => 10.101
+				// so can compare numerically, as 10.100 is less then 10.101
+				
+				//core.os.version = 6.9; // note: debug: temporarily forcing mac to be 10.6 so we can test kqueue
+			}
+			break;
+		default:
+			// nothing special
+	}
+	
+	core.os.toolkit = Services.appinfo.widgetToolkit.toLowerCase();
+	core.os.xpcomabi = Services.appinfo.XPCOMABI;
+	
+	core.firefox = {};
+	core.firefox.version = Services.appinfo.version;
+	
+	console.log('done adding to core, it is now:', core);
+}
 
-    // If add-on is lunched via `cfx run` we need to use `system.exit` to let
-    // cfx know we're done (`cfx test` will take care of exit so we don't do
-    // anything here).
-    if (system.env.CFX_COMMAND === 'run' && reason === 'shutdown')
-      system.exit(0);
-  }
+//start obs stuff
+var observers = {
+	'inline-options-shown': {
+		observe: function (aSubject, aTopic, aData) {
+			if (aData == self.aData.id) {
+				obsHandler_inlineOptionsShown(aSubject, aTopic, aData);
+			}
+		},
+		reg: function () {
+			Services.obs.addObserver(observers['inline-options-shown'], 'addon-options-displayed', false);
+		},
+		unreg: function () {
+			Services.obs.removeObserver(observers['inline-options-shown'], 'addon-options-displayed');
+		}
+	},
+	'inline-options-hid': {
+		observe: function (aSubject, aTopic, aData) {
+			if (aData == self.aData.id) {
+				obsHandler_inlineOptionsHid(aSubject, aTopic, aData);
+			}
+		},
+		reg: function () {
+			Services.obs.addObserver(observers['inline-options-hid'], 'addon-options-hidden', false);
+		},
+		unreg: function () {
+			Services.obs.removeObserver(observers['inline-options-hid'], 'addon-options-hidden');
+		}
+	}
 };
+//end obs stuff
+
+// START - Addon Functionalities
+// start - about page
+function AboutFXChromeMods() {}
+AboutFXChromeMods.prototype = Object.freeze({
+	classDescription: 'FXChromeMods Modification Selection Panel',
+	contractID: '@mozilla.org/network/protocol/about;1?what=fxchrome',
+	classID: Components.ID('{f224b1a0-17a2-11e5-b939-0800200c9a66}'),
+	QueryInterface: XPCOMUtils.generateQI([Ci.nsIAboutModule]),
+
+	getURIFlags: function(aURI) {
+		return Ci.nsIAboutModule.ALLOW_SCRIPT;
+	},
+
+	newChannel: function(aURI) {
+		//let channel = Services.io.newChannel('addons://detail/' + escape(core.addon.id) + '/preferences', null, null);
+		//let channel = Services.io.newChannel(core.addon.path.content + 'about_fxchrome.htm', null, null);
+		let channel = Services.io.newChannel(core.addon.path.content + 'about_fxchrome.htm', null, null);
+		channel.originalURI = aURI;
+		return channel;
+	}
+});
+
+function Factory(component) {
+	this.createInstance = function(outer, iid) {
+		if (outer) {
+			throw Cr.NS_ERROR_NO_AGGREGATION;
+		}
+		return new component();
+	};
+	this.register = function() {
+		Cm.registerFactory(component.prototype.classID, component.prototype.classDescription, component.prototype.contractID, this);
+	};
+	this.unregister = function() {
+		Cm.unregisterFactory(component.prototype.classID, this);
+	}
+	Object.freeze(this);
+	this.register();
+}
+
+var factory;
+// end - about page
+
+// start - observer handler - inline-options-shown
+function obsHandler_inlineOptionsShown(aSubject, aTopic, aData) {
+	var contentDocument = aSubject;
+}
+// end - observer handler - inline-options-shown
+
+// start - observer handler - inline-options-hid
+function obsHandler_inlineOptionsHid(aSubject, aTopic, aData) {
+	var contentDocument = aSubject;
+}
+// end - observer handler - inline-options-hid
+
+// END - Addon Functionalities
+
+function install() {}
+function uninstall() {}
+
+function startup(aData, aReason) {
+	//core.addon.aData = aData;
+	extendCore();
+	factory = new Factory(AboutFXChromeMods);
+}
+
+function shutdown(aData, aReason) {
+	if (aReason == APP_SHUTDOWN) { return }
+	factory.unregister();
+}
+
+// start - common helper functions
+// end - common helper functions

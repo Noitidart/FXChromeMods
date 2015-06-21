@@ -1,6 +1,0 @@
-@-moz-document url(chrome://browser/content/browser.xul) {
-    #appmenu-button {
-        display: none;
-    	background-image: none !important;
-    }
-}

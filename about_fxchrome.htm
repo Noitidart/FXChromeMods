@@ -1,0 +1,83 @@
+<script>
+	const {interfaces: Ci, utils: Cu} = Components;
+	const core = {
+		addon: {
+			id: 'jid0-zDuE7MQZjTEpOLHPvhw3GbDyhIg@jetpack'
+		}
+	};
+
+	Cu.import('resource://gre/modules/Services.jsm');
+	
+	var aContentWindow = window;
+	var aDOMWindow     = aContentWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+									   .getInterface(Ci.nsIWebNavigation)
+									   .QueryInterface(Ci.nsIDocShellTreeItem)
+									   .rootTreeItem
+									   .QueryInterface(Ci.nsIInterfaceRequestor)
+									   .getInterface(Ci.nsIDOMWindow);
+									   
+	if (aDOMWindow.gBrowser) {
+		if (aDOMWindow.gBrowser.tabContainer) {
+			console.error('h1');
+			var found = -1;
+			var aboutFxchromeTab = -1;
+			for (var i=0; i<aDOMWindow.gBrowser.tabContainer.childNodes.length; i++) {
+				console.info(aDOMWindow.gBrowser.tabContainer.childNodes[i].linkedBrowser.contentWindow.location.href.toLowerCase());
+				if (found == -1 && aDOMWindow.gBrowser.tabContainer.childNodes[i].linkedBrowser.contentWindow.location.href.toLowerCase().indexOf('about:addons') > -1) {
+					console.log('found at i:', i);
+					found = i;
+				} else if (aDOMWindow.gBrowser.tabContainer.childNodes[i].linkedBrowser.contentWindow.location.href.toLowerCase().indexOf('about:fxchrome') > -1) {
+					console.log('aboutFxchromeTab at i:', i);
+					aboutFxchromeTab = i;
+				}
+			}
+			console.info('0000 aboutFxchromeTab:', aboutFxchromeTab, 'found:', found);
+			if (found == -1) {
+				aDOMWindow.gBrowser.contentWindow.location = 'about:addons';
+				Services.obs.addObserver(function observer(aSubject, aTopic, aData) {
+					console.error('here:', aSubject, aTopic, aData);
+					Services.obs.removeObserver(observer, aTopic);
+					aSubject.loadView('addons://detail/' + escape(core.addon.id) + '/preferences');
+				}, 'EM-loaded', false);
+			} else {
+				console.info('aboutFxchromeTab:', aboutFxchromeTab, 'found:', found);
+				if (aDOMWindow.gBrowser.selectedTab._tPos == (aboutFxchromeTab+1)) {
+					console.warn('about:fxchrome is not focused, so just close this tab');
+					aDOMWindow.gBrowser.removeTab(aDOMWindow.gBrowser.tabContainer.childNodes[aboutFxchromeTab]);
+				} else {
+					console.log('about:fxchrome is focused, so lets close this tab and move focus to addon manager tab');
+					aDOMWindow.gBrowser.removeTab(aDOMWindow.gBrowser.tabContainer.childNodes[aboutFxchromeTab]);
+					aDOMWindow.gBrowser.tabContainer.childNodes[found].linkedBrowser.contentWindow.loadView('addons://detail/' + escape(core.addon.id) + '/preferences');
+					aDOMWindow.gBrowser.selectTabAtIndex(found);
+				}
+			}
+		} else {
+			console.error('h2');
+			aDOMWindow.gBrowser.contentWindow.location = 'about:addons';
+			Services.obs.addObserver(function observer(aSubject, aTopic, aData) {
+				console.error('here:', aSubject, aTopic, aData);
+				Services.obs.removeObserver(observer, aTopic);
+				aSubject.loadView('addons://detail/' + escape(core.addon.id) + '/preferences');
+			}, 'EM-loaded', false);
+		}
+	} else {
+		console.error('h3');
+		aDOMWindow.location = 'about:addons';
+		Services.obs.addObserver(function observer(aSubject, aTopic, aData) {
+			console.error('here:', aSubject, aTopic, aData);
+			Services.obs.removeObserver(observer, aTopic);
+			aSubject.loadView('addons://detail/' + escape(core.addon.id) + '/preferences');
+		}, 'EM-loaded', false);
+	}
+
+</script>
+<html>
+<head>
+</head>
+<body style="padding:0;margin:0;">
+asfsd
+<!--
+<iframe src="about:addons" style="border:0; width:100%; height:100%; margin:0; padding:0;">
+-->
+</body>
+</html>
