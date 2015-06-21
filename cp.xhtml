@@ -6,9 +6,140 @@
 		<meta name="description" content="&cp.desc;" />
 		<link rel="shortcut icon" href="chrome://fxchromemods/content/resources/images/icon32.png" type="image/png" />
 		<link rel="stylesheet" type="text/css" media="screen" href="chrome://fxchromemods/content/resources/styles/chrome.css" />
+		<link rel="stylesheet" type="text/css" media="screen" href="chrome://fxchromemods/content/resources/styles/cp.css" />
 		<script src="chrome://fxchromemods/content/resources/scripts/cp.js"></script>
 	</head>
 	<body>
-
+		<div id="OptionsContainer">
+			<h1>
+				<img src="chrome://fxchromemods/content/resources/images/icon32.png" />
+				<span class="title">&cp.title;</span>
+				<span class="version">&cp.v;</span>
+			</h1>
+			<div id="OptionsContent">
+					<!--message container
+					<div id="MessageContainer" style="display:none;opacity:0;">
+						<h1>Type in link to image and press enter</h1>
+						<div id="MessageContent"><input type="text" id="MessageInput" style="width:100%;"></div>
+					</div>
+					end message container-->
+					<!--dummy layer to prevent clicks when message shown
+					<div id="OptionsMessageInterLayer" style="margin:-10px -15px -5px -23px; display: none; position: absolute; width: 100%; height: 100%; z-index: 1;"></div>
+					end dummy layer-->
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="blueBackground" />
+							<span>Blue Background Color</span>
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="bookmarkSpaceSaver" />
+							<span>Bookmark Space Saver</span>
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="compactUbuntuIconSet" />
+							<span>Compactmenu Ubuntu Icon Set</span>
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="conditionalBack" />
+							<span>Conditional Forward Button (Firefox 10+)</span>
+						</label>
+					</div>
+					<!---->
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="customAppButton" />
+							<span>Custom App Button</span>
+						</label>
+						<div class="checkbox" style="margin-left: 30px; overflow:hidden; display:none;" id="customAppButtonSelectDiv"> 
+							<select id="customAppButtonSelect">
+								<option value="customAppButton_FFNormal">Firefox Normal</option>
+								<option value="customAppButton_None">Firefox None</option>
+								<option value="chrome://browser/skin/tabbrowser/aurora.png">Firefox Aurora Globe</option>
+								<option value="chrome://browser/skin/tabbrowser/nightly.png">Firefox Nightly Globe</option>
+								<option value="alien">Alien</option>
+								<option value="awesome">Awesome Smilie</option>
+								<option value="burger">Burger</option>
+								<option value="businessman">Businessman</option>
+								<option value="cat">Cat</option>
+								<option value="cupcake">Cupcake</option>
+								<option value="detective">Detective</option>
+								<option value="dog">Dog</option>
+								<option value="flower">Flower</option>
+								<option value="generic">Generic</option>
+								<option value="generic aqua">Generic Aqua</option>
+								<option value="generic blue">Generic Blue</option>
+								<option value="generic green">Generic Green</option>
+								<option value="generic orange">Generic Orange</option>
+								<option value="generic purple">Generic Purple</option>
+								<option value="generic red">Generic Red</option>
+								<option value="generic yellow">Generic Yellow</option>
+								<option value="horse">Horse</option>
+								<option value="margarita">Margarita</option>
+								<option value="chrome://browser/skin/tabbrowser/profile_avatar_ninja.png">Ninja</option>
+								<option value="ninja2">Ninja 2.0</option>
+								<option value="note">Note</option>
+								<option value="pizza">Pizza</option>
+								<option value="secret agent">Secret Agent</option>
+								<option value="soccer">Soccer</option>
+								<option value="sun cloud">Sun Cloud</option>
+								<option value="superhero">Superhero</option>
+								<option value="volley ball">Volley Ball Girl</option>
+								<!--<option value="file">File...</option>-->
+							</select>
+							<span id="customAppButtonOptions" style="display:none;opacity:0;">
+								<button id="customAppButtonBrowse" style="border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 1px 6px; font-size: 0.8em;">Browse</button><button id="customAppButtonDownload" style="border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 1px 6px; font-size: 0.8em;">Download</button><img id="customAppButtonDownloading" style="vertical-align: middle; margin: 0 0 1px 6px; display:none" src="chrome://fxchromemods/content/resources/styles/loading.png" />
+							</span>
+						</div>
+					</div>
+					<!---->
+					<!---->
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="customFxChromeStyle" />
+							<span>Custom FXChrome Style</span>
+						</label>
+						<div class="checkbox" style="margin-left: 30px; overflow:hidden; display:none;" id="customFxChromeStyleSelectDiv">
+							<select id="customFxChromeStyleSelect">
+								<option value="customFxChromeStyle_Australis">Australis FXChrome</option>
+								<option value="customFxChromeStyle_Mac">Mac FXChrome</option>
+								<option value="customFxChromeStyle_Ux">UX FXChrome</option>
+							</select>
+						</div>
+					</div>
+					<!---->
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="newTabPlus" />
+							<span>New Tab Button with Plus Icon</span>
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="utilitiesButton" />
+							<span>Utilities Button in Toolbar</span>
+						</label>
+					</div>
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" id="winXpIcons" />
+							<span>WinXP Style Min/Max/Close Icons</span>
+						</label>
+					</div>
+			</div>
+			<div id="OptionButtons">
+				<div id="OptionButtonRight">
+					<div id="ButtonStrip">
+						<button id="Options_Save">Save</button>
+						<button id="Options_Cancel">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
